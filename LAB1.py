@@ -3,44 +3,43 @@ import numpy as np
 
 ## ZADANIE 1
 
-def neuron(input, weights, bias):
-    return np.dot(input, weights) + bias
+print("Zadanie 1")
+
+def neuron(input_size, weights, bias):
+    return np.dot(input_size, weights) + bias
 
 
-input = np.array([0.5, 0.75, 0.1])
+input_size = np.array([0.5, 0.75, 0.1])
 weights = np.array([0.5, 0.75, 0.1])
-print(weights)
-print(input)
 bias = 0.5
-print(neuron(input, weights, bias))
+print(neuron(input_size, weights, bias))
 
 
 ## ZADANIE 2
 
-def neural_network(input, weights, bias):
+print("Zadanie 2")
+
+def neural_network(input_size, weights, bias):
     neurons = weights.shape[0]
     output = np.zeros(neurons)
     for n in range(neurons):
-        output[n] = neuron(input, weights[n], bias)
+        output[n] = neuron(input_size, weights[n], bias)
     return output
 
 
-input = np.array([0.5, 0.75, 0.1])
+input_size = np.array([0.5, 0.75, 0.1])
 weights = np.array([[0.1, 0.1, -0.3], [0.1, 0.2, 0.0], [0.0, 0.7, 0.1], [0.2, 0.4, 0.0], [-0.3, 0.5, 0.1]])
-print(weights)
 
-neural_network(input, weights, 0)
+print(neural_network(input_size, weights, 0))
 
 ## ZADANIE 3
 
 print("Zadanie 3")
 
 
-def deep_neural_network(input, weights, bias):
-    hidden_layer = neural_network(input, weights, bias)
+def deep_neural_network(input_size, weights, bias):
+    hidden_layer = neural_network(input_size, weights, bias)
     hidden_weights = np.array([[0.7, 0.9, -0.4, 0.8, 0.1], [0.8, 0.5, 0.3, 0.1, 0.0], [-0.3, 0.9, 0.3, 0.1, -0.2]])
-    print(hidden_layer)
-    print(hidden_weights)
     output_layer = neural_network(hidden_layer, hidden_weights, bias)
     return output_layer
 
@@ -52,6 +51,8 @@ print(out)
 
 
 ## Zadanie 4
+
+print("Zadanie 4")
 
 class Layer:
     def __init__(self, output_size, input_size):
@@ -85,7 +86,8 @@ class NeuralNetwork:
         return output
 
     def load_weights(self):
-        pass
+        weights = np.loadtxt('weights.txt', dtype=float)
+        return weights
 
 network = NeuralNetwork(5, 3)
 input = np.array([0.5, 0.75, 0.1])
@@ -96,3 +98,5 @@ print(network.predict(input))
 
 network.add_layer(7)
 print(network.predict(input))
+
+print(network.load_weights())

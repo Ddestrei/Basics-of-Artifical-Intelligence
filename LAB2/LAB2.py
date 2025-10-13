@@ -1,6 +1,5 @@
 # Zadanie 1
 import numpy as np
-from pygments.lexer import words
 
 
 class Neuron:
@@ -37,19 +36,19 @@ class Layer:
 
     def learning(self, input_data, goal, n_epoch):
         for j in range(n_epoch):
-            print("Epoch: ", j)
+            # print("Epoch: ", j)
             for i in range(input_data.shape[1]):
-                print("Series: ", i)
+                # print("Series: ", i)
                 predicts = np.zeros(self.weight.shape[0])
                 for n in range(self.weight.shape[0]):
                     predicts[n] = np.dot(input_data[:, i], self.weight[n])
-                print("Predicts: ", predicts)
+                # print("Predicts: ", predicts)
                 delta = (2 / self.weight.shape[0]) * np.outer(np.subtract(predicts, goal[:, i]), input_data[:, i])
                 error = (1 / self.weight.shape[0]) * (np.sum(np.subtract(predicts, goal[:, i])) ** 2)
                 self.weight -= self.alfa * delta
                 # print(self.weight)
                 # print(predicts)
-                print("Error: ", error)
+                # print("Error: ", error)
         # print(self.weight)
 
     def test(self, input_data, goal):
@@ -58,13 +57,14 @@ class Layer:
             predicts = np.zeros(self.weight.shape[0])
             for n in range(self.weight.shape[0]):
                 predicts[n] = np.dot(input_data[:, i], self.weight[n])
-                if predicts[n] > 0.5 :
-                    predicts[n] = 1
-                else:
-                    predicts[n] = 0
-            if (predicts == goal[ :, i]).all():
-                print(predicts, " ", goal[:, i])
+            predicts = (predicts == predicts.max())
+            #print(predicts)
+            if (predicts == goal[:, i]).all():
+                #print(predicts, " ", goal[:, i])
                 true += 1
+            else:
+                #print(predicts, " ", goal[:, i])
+                pass
 
         return true / input_data.shape[1]
 
@@ -107,7 +107,7 @@ for i in range(len(test_output)):
     elif test_output_raw[i][0] == 4.0:
         test_output[i] = np.array([0, 0, 0, 1])
 
-color_recognition = Layer(np.array([[0.5,0.5,0.5],[0.5,0.5,0.5],[0.5,0.5,0.5],[0.5,0.5,0.5]]), 0.01)
-color_recognition.learning(np.transpose(training_input), np.transpose(training_output), 1000)
+color_recognition = Layer(np.array([[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]]), 0.01)
+color_recognition.learning(np.transpose(training_input), np.transpose(training_output), 6)
 
 print(color_recognition.test(np.transpose(test_input), np.transpose(test_output)))

@@ -22,6 +22,9 @@ class Neuron:
 
 neuron = Neuron(weight=0.5, alfa=0.1)
 neuron.learning(2, 0.8, 5)
+print("x = 0.1")
+neuron = Neuron(weight=0.5, alfa=1)
+neuron.learning(2, 0.8, 5)
 
 # Zadanie 2
 
@@ -36,20 +39,20 @@ class Layer:
 
     def learning(self, input_data, goal, n_epoch):
         for j in range(n_epoch):
-            # print("Epoch: ", j)
+            print("Epoch: ", j)
             for i in range(input_data.shape[1]):
-                # print("Series: ", i)
+                print("Series: ", i)
                 predicts = np.zeros(self.weight.shape[0])
                 for n in range(self.weight.shape[0]):
                     predicts[n] = np.dot(input_data[:, i], self.weight[n])
                 # print("Predicts: ", predicts)
                 delta = (2 / self.weight.shape[0]) * np.outer(np.subtract(predicts, goal[:, i]), input_data[:, i])
-                error = (1 / self.weight.shape[0]) * (np.sum(np.subtract(predicts, goal[:, i])) ** 2)
+                error =  np.sum(np.subtract(predicts, goal[:, i])** 2)
                 self.weight -= self.alfa * delta
                 # print(self.weight)
                 # print(predicts)
-                # print("Error: ", error)
-        # print(self.weight)
+                print("Error: ", error)
+        print(self.weight)
 
     def test(self, input_data, goal):
         true = 0
@@ -73,7 +76,7 @@ layer = Layer(np.array([[0.1, 0.1, -0.3], [0.1, 0.2, 0.0], [0.0, 0.7, 0.1], [0.2
 input_data = np.array([[0.5, 0.1, 0.2, 0.8], [0.75, 0.3, 0.1, 0.9], [0.1, 0.7, 0.6, 0.2]])
 goal_data = np.array(
     [[0.1, 0.5, 0.1, 0.7], [1.0, 0.2, 0.3, 0.6], [0.1, -0.5, 0.2, 0.2], [0.0, 0.3, 0.9, -0.1], [-0.1, 0.7, 0.1, 0.8]])
-layer.learning(input_data, goal_data, 1)
+layer.learning(input_data, goal_data, 1000)
 
 # zadanie 3
 

@@ -1,5 +1,7 @@
 import numpy as np
 
+from load_mnist_images import load_labels, load_images
+
 
 def relu(values):
     return np.array([max(0, v) for v in values])
@@ -27,6 +29,7 @@ class Layer:
         output = np.zeros(self.weights.shape[0])
         for n in range(self.weights.shape[0]):
             output[n] = np.dot(input, self.weights[n])
+        # print(output)
         output = relu(output)
         if self.next_layer is not None:
             delta = self.next_layer.learn(output, goal)
@@ -104,10 +107,77 @@ network.first_layer.next_layer.weights = np.array(
 input_data = np.array([[0.5, 0.1, 0.2, 0.8], [0.75, 0.3, 0.1, 0.9], [0.1, 0.7, 0.6, 0.2]])
 output_data = np.array([[0.1, 0.5, 0.1, 0.7], [1.0, 0.2, 0.3, 0.6], [0.1, -0.5, 0.2, 0.2]])
 
-#network.fit(input_data, output_data, 1)
+# network.fit(input_data, output_data, 50)
+
 
 # Zadanie 3
 
+mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.01)
+mnist_network.add_layer(40)
+test_labels = load_labels('MNIST_ORG/t10k-labels.idx1-ubyte')
+test_images = load_images('MNIST_ORG/t10k-images.idx3-ubyte')
+test_images = test_images.reshape(10000, -1)
+test_labels = test_labels[:, np.newaxis]
+
+train_labels = load_labels('MNIST_ORG/train-labels.idx1-ubyte')
+train_images = load_images('MNIST_ORG/train-images.idx3-ubyte')
+train_images = train_images.reshape(60000, -1)
+train_labels = train_labels[:, np.newaxis]
+
+train_labels = train_labels[:2000, :]
+train_images = train_images[:2000, :]
+train_labels_new = np.zeros((train_labels.shape[0], 10))
+
+for i in range(len(train_labels)):
+    if train_labels[i][0] == 0:
+        train_labels_new[i] = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    elif train_labels[i][0] == 1:
+        train_labels_new[i] = np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+    elif train_labels[i][0] == 2:
+        train_labels_new[i] = np.array([0, 0, 1, 0, 0, 0, 0, 0, 0, 0])
+    elif train_labels[i][0] == 3:
+        train_labels_new[i] = np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+    elif train_labels[i][0] == 4:
+        train_labels_new[i] = np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
+    elif train_labels[i][0] == 5:
+        train_labels_new[i] = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+    elif train_labels[i][0] == 6:
+        train_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+    elif train_labels[i][0] == 7:
+        train_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 1, 0, 0])
+    elif train_labels[i][0] == 8:
+        train_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
+    elif train_labels[i][0] == 9:
+        train_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
+
+test_labels = test_labels[:100, :]
+test_images = test_images[:100, :]
+test_labels_new = np.zeros((test_labels.shape[0], 10))
+for i in range(len(test_labels)):
+    if test_labels[i][0] == 0:
+        test_labels_new[i] = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    elif test_labels[i][0] == 1:
+        test_labels_new[i] = np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+    elif test_labels[i][0] == 2:
+        test_labels_new[i] = np.array([0, 0, 1, 0, 0, 0, 0, 0, 0, 0])
+    elif test_labels[i][0] == 3:
+        test_labels_new[i] = np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+    elif test_labels[i][0] == 4:
+        test_labels_new[i] = np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
+    elif test_labels[i][0] == 5:
+        test_labels_new[i] = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+    elif test_labels[i][0] == 6:
+        test_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+    elif test_labels[i][0] == 7:
+        test_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 1, 0, 0])
+    elif test_labels[i][0] == 8:
+        test_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
+    elif test_labels[i][0] == 9:
+        test_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
+
+mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 10)
+print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
+# Zadanie 4
 
 training = np.loadtxt("training.txt")
 training_input = training[:, :-1]
@@ -143,8 +213,8 @@ training_output = np.transpose(training_output)
 test_input = np.transpose(test_input)
 test_output = np.transpose(test_output)
 
-network = NeuralNetwork(output_size=4, input_size=3, alfa=0.001)
-network.add_layer(10)
+network = NeuralNetwork(output_size=4, input_size=3, alfa=0.01)
 
-network.fit(training_input, test_output, 10)
-print(network.test(test_input, test_output))
+network.add_layer(5)
+# network.fit(training_input, training_output, 30)
+# print(network.test(test_input, test_output))

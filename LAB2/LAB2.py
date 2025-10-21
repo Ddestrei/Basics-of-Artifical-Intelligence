@@ -47,7 +47,7 @@ class Layer:
                     predicts[n] = np.dot(input_data[:, i], self.weight[n])
                 # print("Predicts: ", predicts)
                 delta = (2 / self.weight.shape[0]) * np.outer(np.subtract(predicts, goal[:, i]), input_data[:, i])
-                error =  np.sum(np.subtract(predicts, goal[:, i])** 2)
+                error = np.sum(np.subtract(predicts, goal[:, i]) ** 2)
                 self.weight -= self.alfa * delta
                 # print(self.weight)
                 # print(predicts)
@@ -61,12 +61,12 @@ class Layer:
             for n in range(self.weight.shape[0]):
                 predicts[n] = np.dot(input_data[:, i], self.weight[n])
             predicts = (predicts == predicts.max())
-            #print(predicts)
+            # print(predicts)
             if (predicts == goal[:, i]).all():
-                #print(predicts, " ", goal[:, i])
+                # print(predicts, " ", goal[:, i])
                 true += 1
             else:
-                #print(predicts, " ", goal[:, i])
+                # print(predicts, " ", goal[:, i])
                 pass
 
         return true / input_data.shape[1]

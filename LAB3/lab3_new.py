@@ -129,6 +129,8 @@ train_labels = train_labels[:10000, :]
 train_images = train_images[:10000, :]
 train_labels_new = np.zeros((train_labels.shape[0], 10))
 
+train_images = train_images / 255
+
 for i in range(len(train_labels)):
     if train_labels[i][0] == 0:
         train_labels_new[i] = np.array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -153,6 +155,9 @@ for i in range(len(train_labels)):
 
 test_labels = test_labels[:1000, :]
 test_images = test_images[:1000, :]
+
+test_images = test_images / 255
+
 test_labels_new = np.zeros((test_labels.shape[0], 10))
 for i in range(len(test_labels)):
     if test_labels[i][0] == 0:
@@ -176,8 +181,13 @@ for i in range(len(test_labels)):
     elif test_labels[i][0] == 9:
         test_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
 
-mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 1000)
+
+
+mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 150)
 print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+
+
 # Zadanie 4
 
 training = np.loadtxt("training.txt")

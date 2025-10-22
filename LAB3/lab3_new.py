@@ -77,6 +77,7 @@ class NeuralNetwork:
 
     def fit(self, input_data, output_data, n_epoch):
         for j in range(n_epoch):
+            print("Epoch: ", j)
             for i in range(input_data.shape[1]):
                 self.first_layer.learn(input_data[:, i], output_data[:, i])
 
@@ -96,13 +97,13 @@ class NeuralNetwork:
 
 # ZADANIE 1 i 2
 
-network = NeuralNetwork(1, 1, 0.01)
-network.add_layer(3)
+#network = NeuralNetwork(1, 1, 0.01)
+#network.add_layer(3)
 
-network.first_layer.weights = np.array(
-    [[0.1, 0.1, -0.3], [0.1, 0.2, 0.0], [0.0, 0.7, 0.1], [0.2, 0.4, 0.0], [-0.3, 0.5, 0.1]])
-network.first_layer.next_layer.weights = np.array(
-    [[0.7, 0.9, -0.4, 0.8, 0.1], [0.8, 0.5, 0.3, 0.1, 0.0], [-0.3, 0.9, 0.3, 0.1, -0.2]])
+#network.first_layer.weights = np.array(
+    #[[0.1, 0.1, -0.3], [0.1, 0.2, 0.0], [0.0, 0.7, 0.1], [0.2, 0.4, 0.0], [-0.3, 0.5, 0.1]])
+#network.first_layer.next_layer.weights = np.array(
+    #[[0.7, 0.9, -0.4, 0.8, 0.1], [0.8, 0.5, 0.3, 0.1, 0.0], [-0.3, 0.9, 0.3, 0.1, -0.2]])
 
 input_data = np.array([[0.5, 0.1, 0.2, 0.8], [0.75, 0.3, 0.1, 0.9], [0.1, 0.7, 0.6, 0.2]])
 output_data = np.array([[0.1, 0.5, 0.1, 0.7], [1.0, 0.2, 0.3, 0.6], [0.1, -0.5, 0.2, 0.2]])
@@ -112,7 +113,7 @@ output_data = np.array([[0.1, 0.5, 0.1, 0.7], [1.0, 0.2, 0.3, 0.6], [0.1, -0.5, 
 
 # Zadanie 3
 
-mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.01)
+mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.0001)
 mnist_network.add_layer(40)
 test_labels = load_labels('MNIST_ORG/t10k-labels.idx1-ubyte')
 test_images = load_images('MNIST_ORG/t10k-images.idx3-ubyte')
@@ -124,8 +125,8 @@ train_images = load_images('MNIST_ORG/train-images.idx3-ubyte')
 train_images = train_images.reshape(60000, -1)
 train_labels = train_labels[:, np.newaxis]
 
-train_labels = train_labels[:2000, :]
-train_images = train_images[:2000, :]
+train_labels = train_labels[:10000, :]
+train_images = train_images[:10000, :]
 train_labels_new = np.zeros((train_labels.shape[0], 10))
 
 for i in range(len(train_labels)):
@@ -150,8 +151,8 @@ for i in range(len(train_labels)):
     elif train_labels[i][0] == 9:
         train_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
 
-test_labels = test_labels[:100, :]
-test_images = test_images[:100, :]
+test_labels = test_labels[:1000, :]
+test_images = test_images[:1000, :]
 test_labels_new = np.zeros((test_labels.shape[0], 10))
 for i in range(len(test_labels)):
     if test_labels[i][0] == 0:
@@ -175,7 +176,7 @@ for i in range(len(test_labels)):
     elif test_labels[i][0] == 9:
         test_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
 
-mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 10)
+mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 1000)
 print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
 # Zadanie 4
 

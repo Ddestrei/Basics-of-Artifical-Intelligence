@@ -2,6 +2,7 @@ import numpy as np
 
 from load_mnist_images import load_labels, load_images
 
+np.random.seed(42)
 
 def relu(values):
     return np.array([max(0, v) for v in values])
@@ -29,14 +30,14 @@ class Layer:
         output = np.zeros(self.weights.shape[0])
         for n in range(self.weights.shape[0]):
             output[n] = np.dot(input, self.weights[n])
-        # print(output)
+        out = output
         output = relu(output)
         if self.next_layer is not None:
             delta = self.next_layer.learn(output, goal)
         else:
-            delta = 2 * 1 / self.weights.shape[0] * (output - goal)
-        to_return = np.dot(np.transpose(self.weights), delta)
-        to_return = to_return * relu_deriv(input)
+            delta = 2 * 1 / self.weights.shape[-1] * (output - goal)
+        to_return = delta * relu_deriv(out)
+        to_return = np.dot(np.transpose(self.weights), to_return)
         weight_change = np.outer(delta, np.transpose(input))
         # do zadanie 1 trzeba zakomentować zmiane
         self.weights -= self.alfa * weight_change
@@ -97,23 +98,23 @@ class NeuralNetwork:
 
 # ZADANIE 1 i 2
 
-# network = NeuralNetwork(1, 1, 0.01)
-# network.add_layer(3)
+network = NeuralNetwork(1, 1, 0.01)
+network.add_layer(3)
 
-# network.first_layer.weights = np.array(
-# [[0.1, 0.1, -0.3], [0.1, 0.2, 0.0], [0.0, 0.7, 0.1], [0.2, 0.4, 0.0], [-0.3, 0.5, 0.1]])
-# network.first_layer.next_layer.weights = np.array(
-# [[0.7, 0.9, -0.4, 0.8, 0.1], [0.8, 0.5, 0.3, 0.1, 0.0], [-0.3, 0.9, 0.3, 0.1, -0.2]])
+network.first_layer.weights = np.array(
+    [[0.1, 0.1, -0.3], [0.1, 0.2, 0.0], [0.0, 0.7, 0.1], [0.2, 0.4, 0.0], [-0.3, 0.5, 0.1]])
+network.first_layer.next_layer.weights = np.array(
+     [[0.7, 0.9, -0.4, 0.8, 0.1], [0.8, 0.5, 0.3, 0.1, 0.0], [-0.3, 0.9, 0.3, 0.1, -0.2]])
 
 input_data = np.array([[0.5, 0.1, 0.2, 0.8], [0.75, 0.3, 0.1, 0.9], [0.1, 0.7, 0.6, 0.2]])
 output_data = np.array([[0.1, 0.5, 0.1, 0.7], [1.0, 0.2, 0.3, 0.6], [0.1, -0.5, 0.2, 0.2]])
 
-# network.fit(input_data, output_data, 50)
+network.fit(input_data, output_data, 50)
 
 
 # Zadanie 3
 
-mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.001)
+mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.01)
 mnist_network.add_layer(40)
 test_labels = load_labels('MNIST_ORG/t10k-labels.idx1-ubyte')
 test_images = load_images('MNIST_ORG/t10k-images.idx3-ubyte')
@@ -181,8 +182,8 @@ for i in range(len(test_labels)):
     elif test_labels[i][0] == 9:
         test_labels_new[i] = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
 
-mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 25)
-print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
+#mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 100)
+#print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
 
 # Zadanie 4
 
@@ -223,5 +224,5 @@ test_output = np.transpose(test_output)
 network = NeuralNetwork(output_size=4, input_size=3, alfa=0.01)
 
 network.add_layer(5)
-# network.fit(training_input, training_output, 30)
-# print(network.test(test_input, test_output))
+network.fit(training_input, training_output, 100)
+print(network.test(test_input, test_output))

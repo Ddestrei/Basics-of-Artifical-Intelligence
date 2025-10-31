@@ -16,12 +16,13 @@ def relu_deriv(values):
 
 
 class Layer:
-    def __init__(self, output_size, input_size, alfa):
+    def __init__(self, output_size, input_size, alfa, dropout_percent):
         self.input_size = input_size
         self.output_size = output_size
-        self.weights = np.random.uniform(low=-0.1, high=0.1, size=(output_size, input_size)).astype(np.float32)
+        self.weights = np.random.uniform(low=-0.1, high=0.1, size=(output_size, input_size))
         self.alfa = alfa
         self.next_layer = None
+        self.dropout_percent = dropout_percent
 
     def return_last(self):
         if self.next_layer is None:
@@ -41,11 +42,11 @@ class Layer:
 
     def dropout(self, layer):
         n = layer.__len__()
-        dropout = [0] * (n // 2) + [1] * (n // 2)
+        dropout = [0] * int(n * self.dropout_percent) + [1] * int((n * (1 - self.dropout_percent)))
         random.shuffle(dropout)
         dropout = np.array(dropout)
         layer = layer * dropout
-        layer *= 2
+        layer *= 1 / self.dropout_percent
         return layer
 
     def test(self, input, goal):
@@ -63,23 +64,24 @@ class Layer:
 
 
 class NeuralNetwork:
-    def __init__(self, output_size, input_size, alfa):
+    def __init__(self, output_size, input_size, alfa, dropout_percent):
         self.output_size = output_size
         self.input_size = input_size
         self.alfa = alfa
-        self.first_layer = Layer(output_size, input_size, self.alfa)
+        self.first_layer = Layer(output_size, input_size, self.alfa, dropout_percent)
+        self.dropout_percent = dropout_percent
 
     def add_layer(self, n):
         if self.first_layer.next_layer is None:
             old_layer = self.first_layer
-            self.first_layer = Layer(n, old_layer.input_size, self.alfa)
-            self.first_layer.next_layer = Layer(old_layer.output_size, n, self.alfa)
+            self.first_layer = Layer(n, old_layer.input_size, self.alfa, self.dropout_percent)
+            self.first_layer.next_layer = Layer(old_layer.output_size, n, self.alfa, self.dropout_percent)
         else:
             last_layer = self.first_layer.return_last()
             last_layer_out = last_layer.output_size
             last_layer_in = last_layer.input_size
-            last_layer = Layer(n, last_layer_in, self.alfa)
-            last_layer.next_layer = Layer(last_layer_out, n, self.alfa)
+            last_layer = Layer(n, last_layer_in, self.alfa, self.dropout_percent)
+            last_layer.next_layer = Layer(last_layer_out, n, self.alfa, self.dropout_percent)
 
     def fit(self, input_data, output_data, n_epoch):
         for j in range(n_epoch):
@@ -102,7 +104,7 @@ class NeuralNetwork:
         np.savetxt('weights.txt', dtype=float)
 
 
-# Zadanie 3
+# Zadanie 1
 
 test_labels = load_labels('MNIST_ORG/t10k-labels.idx1-ubyte')
 test_images = load_images('MNIST_ORG/t10k-images.idx3-ubyte').reshape(10000, -1)
@@ -125,8 +127,17 @@ test_labels = test_labels.reshape(-1, 1)
 train_labels_new = np.eye(num_classes)[train_labels.flatten()]
 test_labels_new = np.eye(num_classes)[test_labels.flatten()]
 
-mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.005)
-mnist_network.add_layer(40)
-mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 350)
-print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
+# mnist_network1 = NeuralNetwork(output_size=10, input_size=784, alfa=0.005, dropout_percent=0.5)
+# mnist_network1.add_layer(40)
+# mnist_network1.fit(np.transpose(train_images[:1000]), np.transpose(train_labels_new[:1000]), 350)
+# print(mnist_network1.test(np.transpose(test_images), np.transpose(test_labels_new)))
 
+mnist_network2 = NeuralNetwork(output_size=10, input_size=784, alfa=0.005, dropout_percent=0.5)
+mnist_network2.add_layer(100)
+mnist_network2.fit(np.transpose(train_images[:10000]), np.transpose(train_labels_new[:10000]), 350)
+print(mnist_network2.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+# mnist_network3 = NeuralNetwork(output_size=10, input_size=784, alfa=0.005, dropout_percent=0.5)
+# mnist_network3.add_layer(100)
+# mnist_network3.fit(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:10000]), 350)
+# print(mnist_network3.test(np.transpose(test_images), np.transpose(test_labels_new)))

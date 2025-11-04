@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 from load_mnist_images import load_labels, load_images
@@ -29,19 +28,19 @@ class Layer:
             return self.next_layer.return_last()
 
     def learn(self, input, goal):
-        output = relu(np.dot(self.weights, input))
+        output = self.weights @ input
         if self.next_layer is not None:
-            delta = self.next_layer.learn(output, goal)
+            delta = self.next_layer.learn(relu(output), goal)
         else:
             delta = (2 / self.weights.shape[0]) * (output - goal)
-        to_return = np.dot(self.weights.T, delta) * relu_deriv(input)
+        to_return = self.weights.T @ delta * relu_deriv(input)
         self.weights -= self.alfa * np.outer(delta, np.transpose(input))
         return to_return
 
     def test(self, input, goal):
-        output = np.dot(self.weights, input)
+        output = self.weights @ input
         if self.next_layer is not None:
-            return self.next_layer.test(output, goal)
+            return self.next_layer.test(relu(output), goal)
         else:
             output = (output == output.max())
             if (output == goal).all():
@@ -69,12 +68,11 @@ class NeuralNetwork:
             last_layer = Layer(n, last_layer_in, self.alfa)
             last_layer.next_layer = Layer(last_layer_out, n, self.alfa)
 
-    def fit(self, input_data, output_data, n_epoch, t_i, t_o):
+    def fit(self, input_data, output_data, n_epoch):
         for j in range(n_epoch):
             print("Epoch: ", j)
             for i in range(input_data.shape[1]):
                 if i % 100 == 0:
-                    print(self.test(t_i, t_o))
                     pass
                 self.first_layer.learn(input_data[:, i], output_data[:, i])
 
@@ -135,8 +133,8 @@ test_labels_new = np.eye(num_classes)[test_labels.flatten()]
 mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.01)
 mnist_network.add_layer(40)
 
-mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 2,np.transpose(test_images), np.transpose(test_labels_new))
-print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
+mnist_network.fit(np.transpose(train_images[:, :20000]), np.transpose(train_labels_new[:, :20000]), 10)
+print(mnist_network.test(np.transpose(test_images[:, :20000]), np.transpose(test_labels_new[:, :20000])))
 
 # Zadanie 4
 

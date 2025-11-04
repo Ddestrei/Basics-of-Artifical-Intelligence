@@ -177,50 +177,59 @@ test_labels_new = np.eye(num_classes)[test_labels.flatten()]
 
 ## wagi są aktualizowane po każdej serii
 #
-# mnist_network3 = NeuralNetwork(output_size=10, input_size=784, alfa=0.01, dropout_percent=0.0, activation=relu,
-#                                activation_deriv=relu_deriv)
-# mnist_network3.add_layer(40)
-# mnist_network3.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:10000]), 10, 1)
-# print(mnist_network3.test(np.transpose(test_images), np.transpose(test_labels_new)))
-#
-# mnist_network4 = NeuralNetwork(output_size=10, input_size=784, alfa=0.1, dropout_percent=0.5, activation=relu,
-#                                activation_deriv=relu_deriv)
-# mnist_network4.add_layer(40)
-# mnist_network4.fit_batch(np.transpose(train_images[:1000]), np.transpose(train_labels_new[:1000]), 350, 100)
-# print(mnist_network4.test(np.transpose(test_images), np.transpose(test_labels_new)))
-#
-# mnist_network5 = NeuralNetwork(output_size=10, input_size=784, alfa=0.1, dropout_percent=0.5, activation=relu,
-#                                activation_deriv=relu_deriv)
-# mnist_network5.add_layer(100)
-# mnist_network5.fit_batch(np.transpose(train_images[:10000]), np.transpose(train_labels_new[:10000]), 350, 100)
-# print(mnist_network5.test(np.transpose(test_images), np.transpose(test_labels_new)))
-#
-# mnist_network6 = NeuralNetwork(output_size=10, input_size=784, alfa=0.1, dropout_percent=0.5, activation=relu,
-#                                activation_deriv=relu_deriv)
-# mnist_network6.add_layer(100)
-# mnist_network6.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:10000]), 350, 100)
-# print(mnist_network6.test(np.transpose(test_images), np.transpose(test_labels_new)))
-#
-# mnist_network7 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=sigmoid,
-#                                activation_deriv=sigmoid_deriv)
-# mnist_network7.add_layer(100)
-# mnist_network7.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:10000]), 350, 100)
-# print(mnist_network7.test(np.transpose(test_images), np.transpose(test_labels_new)))
-#
-# mnist_network8 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=tanh,
-#                                activation_deriv=tanh_deriv)
-# mnist_network8.add_layer(100)
-# mnist_network8.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:10000]), 350, 100)
-# print(mnist_network8.test(np.transpose(test_images), np.transpose(test_labels_new)))
-#
-# mnist_network9 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=softmax,
-#                                activation_deriv=softmax_deriv)
-# mnist_network9.add_layer(100)
-# mnist_network9.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:10000]), 350, 100)
-# print(mnist_network9.test(np.transpose(test_images), np.transpose(test_labels_new)))
+mnist_network3 = NeuralNetwork(output_size=10, input_size=784, alfa=0.01, dropout_percent=0.0, activation=relu,
+                               activation_deriv=relu_deriv)
+mnist_network3.add_layer(40)
+mnist_network3.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 10, 1)
+print(mnist_network3.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+## ZADANIE 2
+print("ZADANIE 2")
+
+mnist_network4 = NeuralNetwork(output_size=10, input_size=784, alfa=0.1, dropout_percent=0.5, activation=relu,
+                               activation_deriv=relu_deriv)
+mnist_network4.add_layer(40)
+mnist_network4.fit_batch(np.transpose(train_images[:1000]), np.transpose(train_labels_new[:1000]), 350, 100)
+print(mnist_network4.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+mnist_network5 = NeuralNetwork(output_size=10, input_size=784, alfa=0.1, dropout_percent=0.5, activation=relu,
+                               activation_deriv=relu_deriv)
+mnist_network5.add_layer(100)
+mnist_network5.fit_batch(np.transpose(train_images[:10000]), np.transpose(train_labels_new[:10000]), 350, 100)
+print(mnist_network5.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+mnist_network6 = NeuralNetwork(output_size=10, input_size=784, alfa=0.1, dropout_percent=0.5, activation=relu,
+                               activation_deriv=relu_deriv)
+mnist_network6.add_layer(100)
+mnist_network6.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
+print(mnist_network6.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+##ZADANIE 3
+print("ZADANIE 3")
+
+mnist_network7 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=sigmoid,
+                               activation_deriv=sigmoid_deriv)
+mnist_network7.add_layer(100)
+mnist_network7.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
+print(mnist_network7.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+mnist_network8 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=tanh,
+                               activation_deriv=tanh_deriv)
+mnist_network8.add_layer(100)
+mnist_network8.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
+print(mnist_network8.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+mnist_network9 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=softmax,
+                               activation_deriv=softmax_deriv)
+mnist_network9.add_layer(100)
+mnist_network9.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
+print(mnist_network9.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+## NAJLPESZE
+print("BEST")
 
 best = NeuralNetwork(output_size=10, input_size=784, alfa=0.1, dropout_percent=0.1, activation=relu,
                      activation_deriv=relu_deriv)
 best.add_layer(100)
-best.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:10000]), 350, 100)
+best.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
 print(best.test(np.transpose(test_images), np.transpose(test_labels_new)))

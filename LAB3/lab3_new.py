@@ -133,8 +133,8 @@ test_labels_new = np.eye(num_classes)[test_labels.flatten()]
 mnist_network = NeuralNetwork(output_size=10, input_size=784, alfa=0.01)
 mnist_network.add_layer(40)
 
-mnist_network.fit(np.transpose(train_images[:, :20000]), np.transpose(train_labels_new[:, :20000]), 10)
-print(mnist_network.test(np.transpose(test_images[:, :20000]), np.transpose(test_labels_new[:, :20000])))
+mnist_network.fit(np.transpose(train_images), np.transpose(train_labels_new), 10)
+print(mnist_network.test(np.transpose(test_images), np.transpose(test_labels_new)))
 
 # Zadanie 4
 

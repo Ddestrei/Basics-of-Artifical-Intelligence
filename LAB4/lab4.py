@@ -31,22 +31,20 @@ def tanh_deriv(x):
 
 
 def softmax(x):
-    # stabilna wersja numerycznie (chroni przed overflowem)
     x = np.array(x)
     e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
     return e_x / np.sum(e_x, axis=-1, keepdims=True)
 
+WEIGHT_LOW = -0.1
+WEIGHT_HIGH = 0.1
 
-def softmax_deriv(x):
-    s = softmax(x)
-    return s * (1 - s)
 
 
 class Layer:
     def __init__(self, output_size, input_size, alfa, dropout_percent, activation, activation_deriv):
         self.input_size = input_size
         self.output_size = output_size
-        self.weights = np.random.uniform(low=-0.1, high=0.1, size=(output_size, input_size))
+        self.weights = np.random.uniform(low=WEIGHT_LOW, high=WEIGHT_HIGH, size=(output_size, input_size))
         self.alfa = alfa
         self.next_layer = None
         self.dropout_percent = dropout_percent
@@ -63,25 +61,30 @@ class Layer:
         for i in range(0, len(input_d), batch_size):
             batch_input = input_d[:, i:i + batch_size]
             batch_goal = goal[:, i:i + batch_size]
-            self.learn_batch(batch_input, batch_goal, batch_size)
+            self.learn_batch(batch_input, batch_goal, batch_size,0)
 
-    def learn_batch(self, input, goal, batch_size):
+    def learn_batch(self, input, goal, batch_size, mask_n: None):
         output = self.weights @ input  # zamiast pętli
+        mask = self.dropout_batch(output)
         if self.next_layer is not None:
-            delta = self.next_layer.learn_batch(self.activation(self.dropout_batch(output)), goal, batch_size)
+            output = output * mask
+            output /= (1- self.dropout_percent)
+            delta = self.next_layer.learn_batch(self.activation(output), goal, batch_size, mask)
         else:
             delta = (2 / self.weights.shape[0]) * (output - goal) / batch_size
         to_return = (self.weights.T @ delta) * self.activation_deriv(input)
         self.weights -= self.alfa * (delta @ np.transpose(input))
+        to_return = to_return * mask_n
+        to_return /= (1- self.dropout_percent)
         return to_return
 
     def dropout_batch(self, layer):
         layer = np.array(layer)
         rows, cols = layer.shape
         mask = np.random.binomial(1, 1 - self.dropout_percent, size=(rows, cols))
-        layer = layer * mask
-        layer /= (1 - self.dropout_percent)
-        return layer
+        #layer = layer * mask
+        #layer /= (1 - self.dropout_percent)
+        return mask
 
     def test(self, input, goal):
         output = self.weights @ input
@@ -177,10 +180,23 @@ test_labels_new = np.eye(num_classes)[test_labels.flatten()]
 
 ## wagi są aktualizowane po każdej serii
 #
-mnist_network3 = NeuralNetwork(output_size=10, input_size=784, alfa=0.01, dropout_percent=0.0, activation=relu,
+
+mnist_network1 = NeuralNetwork(output_size=10, input_size=784, alfa=0.005, dropout_percent=0.5, activation=relu,
                                activation_deriv=relu_deriv)
-mnist_network3.add_layer(40)
-mnist_network3.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 10, 1)
+mnist_network1.add_layer(40)
+mnist_network1.fit_batch(np.transpose(train_images[:1000]), np.transpose(train_labels_new[:1000]), 350, 10)
+print(mnist_network1.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+mnist_network2 = NeuralNetwork(output_size=10, input_size=784, alfa=0.005, dropout_percent=0.5, activation=relu,
+                               activation_deriv=relu_deriv)
+mnist_network2.add_layer(100)
+mnist_network2.fit_batch(np.transpose(train_images[:10000]), np.transpose(train_labels_new[:10000]), 350, 10)
+print(mnist_network2.test(np.transpose(test_images), np.transpose(test_labels_new)))
+
+mnist_network3 = NeuralNetwork(output_size=10, input_size=784, alfa=0.005, dropout_percent=0.5, activation=relu,
+                               activation_deriv=relu_deriv)
+mnist_network3.add_layer(100)
+mnist_network3.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 10)
 print(mnist_network3.test(np.transpose(test_images), np.transpose(test_labels_new)))
 
 ## ZADANIE 2
@@ -207,20 +223,20 @@ print(mnist_network6.test(np.transpose(test_images), np.transpose(test_labels_ne
 ##ZADANIE 3
 print("ZADANIE 3")
 
-mnist_network7 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=sigmoid,
+mnist_network7 = NeuralNetwork(output_size=10, input_size=784, alfa=0.02, dropout_percent=0.5, activation=sigmoid,
                                activation_deriv=sigmoid_deriv)
 mnist_network7.add_layer(100)
 mnist_network7.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
 print(mnist_network7.test(np.transpose(test_images), np.transpose(test_labels_new)))
 
-mnist_network8 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=tanh,
+mnist_network8 = NeuralNetwork(output_size=10, input_size=784, alfa=0.02, dropout_percent=0.5, activation=tanh,
                                activation_deriv=tanh_deriv)
 mnist_network8.add_layer(100)
 mnist_network8.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
 print(mnist_network8.test(np.transpose(test_images), np.transpose(test_labels_new)))
 
-mnist_network9 = NeuralNetwork(output_size=10, input_size=784, alfa=0.2, dropout_percent=0.5, activation=softmax,
-                               activation_deriv=softmax_deriv)
+mnist_network9 = NeuralNetwork(output_size=10, input_size=784, alfa=0.02, dropout_percent=0.5, activation=softmax,
+                               activation_deriv=relu_deriv)
 mnist_network9.add_layer(100)
 mnist_network9.fit_batch(np.transpose(train_images[:60000]), np.transpose(train_labels_new[:60000]), 350, 100)
 print(mnist_network9.test(np.transpose(test_images), np.transpose(test_labels_new)))

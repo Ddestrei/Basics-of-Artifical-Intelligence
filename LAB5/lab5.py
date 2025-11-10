@@ -1,4 +1,8 @@
 import numpy as np
+from scipy.signal import convolve2d
+from load_mnist_images import load_labels, load_images
+
+np.random.seed(42)
 
 def konwolucja2D(image, filter, step=1, padding=0):
     # Wymiary obrazu i filtra
@@ -30,6 +34,7 @@ def konwolucja2D(image, filter, step=1, padding=0):
 
     return output
 
+
 image = np.array([
     [1, 1, 1, 0, 0],
     [0, 1, 1, 1, 0],
@@ -47,21 +52,115 @@ filter = np.array([
 
 output = konwolucja2D(image, filter, step=1, padding=0)
 print(output)
-print(konwolucja2D(np.ones((28,28)),np.ones((3,3)),step=1,padding=0).shape)
 
 
 def relu(x):
     return np.maximum(0, x)
 
-def softmax(x):
-    exps = np.exp(x - np.max(x))
-    return exps / np.sum(exps)
+def relu_deriv(x):
+    return (x > 0).astype(float)
 
 class CNN_V1:
     def __init__(self):
-        self.kernel_weights = np.random.uniform(high=0.01,low=0.01,size=(16,26*26))
-        self.output_weights = np.random.uniform(high=0.01,low=0.01,size=(10,28))
+        self.filter_size = 3
+        self.n_filters = 16
+        self.filters = np.array([np.random.uniform(high=0.01, low=-0.01, size=(self.filter_size, self.filter_size)) for _ in range(self.n_filters)])
+        self.output_weights = np.random.uniform(high=0.1, low=-0.1, size=(10, 10816))
+        self.alfa = 0.01
         pass
 
+    def conv2d_single_channel(self,image, kernel):
+        """Splot 2D pojedynczego kanału (bez paddingu, stride=1)"""
+        img_h, img_w = image.shape
+        k_h, k_w = kernel.shape
+        out_h = img_h - k_h + 1
+        out_w = img_w - k_w + 1
+        output = np.zeros((out_h, out_w))
+        for i in range(out_h):
+            for j in range(out_w):
+                region = image[i:i + k_h, j:j + k_w]
+                output[i, j] = np.sum(region * kernel)
+        return output
+
+    def conv_layer(self,image, filters):
+        """Warstwa konwolucyjna z wieloma filtrami"""
+        feature_maps = []
+        for f in filters:
+            fmap = convolve2d(image, f,mode='valid')
+            feature_maps.append(fmap)
+        return np.array(feature_maps)
+
+    def convert_image_to_sections(self, input_d):
+        image_sections = []
+        for i in range(0, input_d.shape[0] - self.filter_size + 1, 1):
+            patch = input_d[i:i + self.filter_size, :]
+            image_sections.append(patch.flatten())
+        return np.array(image_sections)
+
+    def conv_backward(self, d_out, image, filters):
+        n_filters, kh, kw = filters.shape
+        d_filters = np.zeros_like(filters)
+
+        for f in range(n_filters):
+            for i in range(image.shape[0] - kh + 1):
+                for j in range(image.shape[1] - kw + 1):
+                    region = image[i:i + kh, j:j + kw]
+                    d_filters[f] += d_out[f, i, j] * region
+        return d_filters
+
     def train(self, img, goal):
-        image_sections =
+        kernel_layer = self.conv_layer(img,self.filters)
+        kernel_layer = relu(kernel_layer)
+        layer_output = self.output_weights @ kernel_layer.flatten()
+        layer_output_delta = 2 * 1 / layer_output.shape[0] * (layer_output - goal)
+        kernel_layer_delta = self.output_weights.T @ layer_output_delta
+        kernel_layer_delta_reshape = kernel_layer_delta.reshape(kernel_layer.shape)
+        kernel_layer_delta_reshape = relu_deriv(kernel_layer_delta_reshape)
+        layer_output_weight_delta = np.outer(layer_output_delta, kernel_layer.flatten())
+        kernel_layer_weight_delta = self.conv_backward(kernel_layer_delta_reshape,img,self.filters)
+        self.filters -= self.alfa * kernel_layer_weight_delta
+        self.output_weights -= self.alfa * layer_output_weight_delta
+
+    def fit(self, input_data, output_data, n_epoch):
+        for i in range(n_epoch):
+            for j in range(input_data.shape[0]):
+                if j % 100 == 0:
+                    print(j)
+                self.train(input_data[j,:,: ], output_data[j,:])
+
+    def test(self, input_data, output_data):
+        true = 0
+        for i in range(input_data.shape[0]):
+            kernel_layer = self.conv_layer(input_data[i,:,: ],self.filters)
+            kernel_layer = relu(kernel_layer)
+            layer_output = self.output_weights @ kernel_layer.flatten()
+            layer_output = (layer_output == layer_output.max())
+            if (layer_output == output_data[i,:]).all():
+                true += 1
+
+        return true / input_data.shape[1]
+
+
+test_labels = load_labels('../MNIST_ORG/t10k-labels.idx1-ubyte')
+test_images = load_images('../MNIST_ORG/t10k-images.idx3-ubyte')
+
+train_labels = load_labels('../MNIST_ORG/train-labels.idx1-ubyte')
+train_images = load_images('../MNIST_ORG/train-images.idx3-ubyte')
+
+# --- Normalize pixel values ---
+train_images = train_images / 255.0
+test_images = test_images / 255.0
+
+# --- One-hot encode labels (clean version) ---
+num_classes = 10
+
+# Reshape labels to (N, 1)
+train_labels = train_labels.reshape(-1, 1)
+test_labels = test_labels.reshape(-1, 1)
+
+# Create one-hot encoded versions
+train_labels_new = np.eye(num_classes)[train_labels.flatten()]
+test_labels_new = np.eye(num_classes)[test_labels.flatten()]
+cnn_v1_1 = CNN_V1()
+cnn_v1_1.fit(train_images[:100],train_labels_new[:100],1)
+print(cnn_v1_1.test(test_images,test_labels_new))

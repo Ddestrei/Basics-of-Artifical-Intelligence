@@ -47,19 +47,25 @@ kernel_1_weights = np.array([0.1, 0.2, -0.1, -0.1, 0.1, 0.9, 0.1, 0.4, 0.1])
 kernel_2_weights = np.array([0.3, 1.1, -0.3, 0.1, 0.2, 0.0, 0.0, 1.3, 0.1])
 kernel_weights = np.array([kernel_1_weights,kernel_2_weights])
 W_y = np.array([[0.1, -0.2, 0.1, 0.3], [0.2, 0.1, 0.5, -0.3]])
-image_sections = im2col(np.array(input),window_shape=(3,3))
-print(image_sections)
-kernel_layer = image_sections.T * kernel_weights
+image_sections = sliding_reshape(input,3,1)
+kernel_layer = image_sections @ kernel_weights.T
+print(W_y.shape)
 output_layer = W_y @ kernel_layer.flatten()
 delta_output_layer = 2 * 1 / output_layer.shape[0] * (output_layer - expected_output)
 kernel_layer_delta = W_y.T @ delta_output_layer
 kernel_layer_delta_reshape = kernel_layer_delta.reshape((2,2))
-weight_delta_output_layer = np.array([[delta_output_layer[0]],[delta_output_layer[1]]]) * kernel_layer.flatten()
+weight_delta_output_layer = np.array([delta_output_layer]).T * kernel_layer.flatten()
 kernel_layer_weight_delta = kernel_layer_delta_reshape.T @ image_sections
 kernel_weights -= 0.01 * kernel_layer_weight_delta
 W_y -= 0.01 * weight_delta_output_layer
-print(kernel_layer)
-
-print(im2col(np.array(input),window_shape=(2,1)))
 
 
+
+def convert_image_to_sections( input_d):
+    image_sections = []
+    for i in range(0, input_d.shape[0] - 3 + 1, 1):
+        patch = input_d[i:i + 3, :]
+        image_sections.append(patch.flatten())
+    return np.array(image_sections)
+
+print(convert_image_to_sections(input))

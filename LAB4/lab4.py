@@ -144,11 +144,11 @@ class NeuralNetwork:
 
 # Zadanie 1
 
-test_labels = load_labels('MNIST_ORG/t10k-labels.idx1-ubyte')
-test_images = load_images('MNIST_ORG/t10k-images.idx3-ubyte').reshape(10000, -1)
+test_labels = load_labels('../MNIST_ORG/t10k-labels.idx1-ubyte')
+test_images = load_images('../MNIST_ORG/t10k-images.idx3-ubyte').reshape(10000, -1)
 
-train_labels = load_labels('MNIST_ORG/train-labels.idx1-ubyte')
-train_images = load_images('MNIST_ORG/train-images.idx3-ubyte').reshape(60000, -1)
+train_labels = load_labels('../MNIST_ORG/train-labels.idx1-ubyte')
+train_images = load_images('../MNIST_ORG/train-images.idx3-ubyte').reshape(60000, -1)
 
 # --- Normalize pixel values ---
 train_images = train_images / 255.0

@@ -64,11 +64,11 @@ def relu_deriv(x):
 class CNN_V1:
     def __init__(self):
         self.filter_size = 3
-        self.n_filters = 2
-        #self.filters = np.array([np.random.uniform(high=0.01, low=-0.01, size=(self.filter_size, self.filter_size)) for _ in range(self.n_filters)])
-        self.filters = np.array([np.array([[0.1, 0.2, -0.1],[ -0.1, 0.1, 0.9], [0.1, 0.4, 0.1]]),np.array([[0.3, 1.1, -0.3],[ 0.1, 0.2, 0.0],[ 0.0, 1.3, 0.1]])])
-        #self.output_weights = np.random.uniform(high=0.1, low=-0.1, size=(2, 4)) # size=(10, 10816)
-        self.output_weights = np.array([[0.1, -0.2, 0.1, 0.3], [0.2, 0.1, 0.5, -0.3]])
+        self.n_filters = 26
+        self.filters = np.array([np.random.uniform(high=0.01, low=-0.01, size=(self.filter_size, self.filter_size)) for _ in range(self.n_filters)])
+        #self.filters = np.array([np.array([[0.1, 0.2, -0.1],[ -0.1, 0.1, 0.9], [0.1, 0.4, 0.1]]),np.array([[0.3, 1.1, -0.3],[ 0.1, 0.2, 0.0],[ 0.0, 1.3, 0.1]])])
+        self.output_weights = np.random.uniform(high=0.1, low=-0.1, size=(10, 17576)) # size=(10, 10816)
+        #self.output_weights = np.array([[0.1, -0.2, 0.1, 0.3], [0.2, 0.1, 0.5, -0.3]])
         self.alfa = 0.01
         pass
 
@@ -76,63 +76,66 @@ class CNN_V1:
         feature_maps = []
         for f in filters:
             f = f.T
+            filters_size = f.shape[0]
             for x in range(0,image.shape[1]-f.shape[1]+1, 1):
                 row = []
                 for y in range(0,image.shape[0]-f.shape[0]+1, 1):
-                    sum = 0
-                    for f_x in range(0,f.shape[1]):
-                        for f_y in range(0, f.shape[0]):
-                            sum += image[y+f_y, x+f_x] * f[f_y, f_x]
+                    segment = image[y:y+filters_size, x:x+filters_size].flatten()
+                    sum = np.sum(segment * f.flatten())
                     row.append(sum)
-                    print(sum)
                 row = np.array(row)
                 feature_maps.append(row.T)
         feature_maps = np.array(feature_maps)
         return feature_maps
 
     def conv_backward(self, d_out, image, filters):
-        n_filters, kh, kw = filters.shape
-        d_filters = np.zeros_like(filters)
-
-        for f in range(n_filters):
-            for i in range(image.shape[0] - kh + 1):
-                for j in range(image.shape[1] - kw + 1):
-                    region = image[i:i + kh, j:j + kw]
-                    d_filters[f] += d_out[f, i, j] * region
-        return d_filters
+        filters_size = filters[0].shape[1]
+        segments = []
+        for x in range(0,image.shape[1]-filters_size+1, 1):
+            for y in range(0,image.shape[0]-filters_size+1, 1):
+                segment = image[y:y+filters_size, x:x+filters_size].T.flatten()
+                segments.append(segment)
+        segments = np.array(segments)
+        weights = d_out @ segments
+        corr_weights = []
+        for i in range(filters.shape[0]):
+            corr_weights.append(weights[i,:].reshape((filters_size,filters_size)))
+        return np.array(corr_weights)
 
     def train(self, img, goal):
         kernel_layer = self.seg_and_conv(img,self.filters)
         kernel_layer = kernel_layer.T
         kernel_layer = relu(kernel_layer)
         layer_output = self.output_weights @ kernel_layer.flatten()
+        error = np.sum(layer_output - goal)**2
         layer_output_delta = 2 * 1 / layer_output.shape[0] * (layer_output - goal)
         kernel_layer_delta = self.output_weights.T @ layer_output_delta
         kernel_layer_delta_reshape = kernel_layer_delta.reshape(kernel_layer.shape)
-        #kernel_layer_delta_reshape = relu_deriv(kernel_layer_delta_reshape)
         layer_output_weight_delta = np.outer(layer_output_delta, kernel_layer.flatten())
         kernel_layer_weight_delta = self.conv_backward(kernel_layer_delta_reshape,img,self.filters)
         self.filters -= self.alfa * kernel_layer_weight_delta
         self.output_weights -= self.alfa * layer_output_weight_delta
+        return error
 
     def fit(self, input_data, output_data, n_epoch):
         for i in range(n_epoch):
             for j in range(input_data.shape[0]):
-                if j % 100 == 0:
-                    print(j)
-                self.train(input_data[j,:,: ], output_data[j,:])
+                error = self.train(input_data[j,:,: ], output_data[j,:])
+                if j % 10 == 0:
+                    print(error)
 
     def test(self, input_data, output_data):
         true = 0
         for i in range(input_data.shape[0]):
-            kernel_layer = self.conv_layer(input_data[i,:,: ],self.filters)
+            kernel_layer = self.seg_and_conv(input_data[i,:,:], self.filters)
+            kernel_layer = kernel_layer.T
             kernel_layer = relu(kernel_layer)
             layer_output = self.output_weights @ kernel_layer.flatten()
             layer_output = (layer_output == layer_output.max())
             if (layer_output == output_data[i,:]).all():
                 true += 1
 
-        return true / input_data.shape[1]
+        return true / input_data.shape[0]
 
 
 test_labels = load_labels('../MNIST_ORG/t10k-labels.idx1-ubyte')
@@ -141,25 +144,23 @@ test_images = load_images('../MNIST_ORG/t10k-images.idx3-ubyte')
 train_labels = load_labels('../MNIST_ORG/train-labels.idx1-ubyte')
 train_images = load_images('../MNIST_ORG/train-images.idx3-ubyte')
 
-# --- Normalize pixel values ---
 train_images = train_images / 255.0
 test_images = test_images / 255.0
 
-# --- One-hot encode labels (clean version) ---
 num_classes = 10
 
-# Reshape labels to (N, 1)
 train_labels = train_labels.reshape(-1, 1)
 test_labels = test_labels.reshape(-1, 1)
 
-# Create one-hot encoded versions
 train_labels_new = np.eye(num_classes)[train_labels.flatten()]
 test_labels_new = np.eye(num_classes)[test_labels.flatten()]
-# cnn_v1_1 = CNN_V1()
-# cnn_v1_1.fit(train_images[:100],train_labels_new[:100],1)
-# print(cnn_v1_1.test(test_images,test_labels_new))
+cnn_v1_1 = CNN_V1()
+cnn_v1_1.fit(train_images[:300],train_labels_new[:300],2)
+#cnn_v1_1.train(train_images[0],train_labels_new[0])
+print('RUN TEST')
+print(cnn_v1_1.test(test_images[:100],test_labels_new[:100]))
 
 
-cnn = CNN_V1()
-cnn.train(np.array([[8.5, 0.65, 1.2], [9.5, 0.8, 1.3], [9.9, 0.8, 0.5], [9.0, 0.9, 1.0]]), np.array([0, 1]))
+# cnn = CNN_V1()
+# cnn.train(np.array([[8.5, 0.65, 1.2], [9.5, 0.8, 1.3], [9.9, 0.8, 0.5], [9.0, 0.9, 1.0]]), np.array([0, 1]))
 

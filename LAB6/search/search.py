@@ -16,8 +16,10 @@
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
+import sys
 
 import util
+
 
 class SearchProblem:
     """
@@ -70,12 +72,13 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
+
 
 def dfs_impl(state, problem, way, path, states):
     if path is not None: way.append(path)
     states.append(state)
-    #print(way)
+    # print(way)
     if problem.isGoalState(state):
         return way
     successors = problem.getSuccessors(state)
@@ -87,6 +90,7 @@ def dfs_impl(state, problem, way, path, states):
             return return_v
 
     return None
+
 
 def depthFirstSearch(problem: SearchProblem):
     """
@@ -103,19 +107,20 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    #print("Start:", problem.getStartState())
-    #print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    #print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+    # print("Start:", problem.getStartState())
+    # print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    # print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     start_sate = problem.getStartState()
     way = []
-    return dfs_impl(start_sate, problem, way,None, [])
+    return dfs_impl(start_sate, problem, way, None, [])
+
 
 def dfs_impl_D(state, problem, way, path, states, depth):
     if depth == 0:
         return None
     if path is not None: way.append(path)
     states.append(state)
-    #print(way)
+    # print(way)
     if problem.isGoalState(state):
         return way
     successors = problem.getSuccessors(state)
@@ -127,15 +132,15 @@ def dfs_impl_D(state, problem, way, path, states, depth):
             return return_v
 
 
-
-
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     states = []
-    paths = []
-    index = 0
     curr_state = problem.getStartState()
+    paths = {
+        curr_state: []
+    }
+    index = 0
     states.append(curr_state)
     path = []
     goal = None
@@ -148,25 +153,56 @@ def breadthFirstSearch(problem: SearchProblem):
                 goal = s[0]
             if s[0] in states: continue
             states.append(s[0])
-            paths.append(s)
+            paths[s[0]] = paths[curr_state].copy()
+            paths[s[0]].append(s[1])
         index = index + 1
         if index < len(states):
             curr_state = states[index]
 
-    while goal != 'A':
-        for p in paths:
-            if p[0] == goal:
-                path.append(p[1])
-                goal = p[1][2]
+    return paths[goal]
 
-    path.reverse()
-
-    return path
 
 def uniformCostSearch(problem: SearchProblem):
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visited_states = []
+    curr_state = problem.getStartState()
+    paths = {
+        curr_state: [[],0]
+    }
+    to_walk ={
+        curr_state: [[], 0]
+    }
+    states = [curr_state]
+    index = 0
+    goals = []
+    while len(to_walk) > 0:
+        visited_states.append(curr_state)
+        if curr_state in goals:
+            return paths[curr_state][0]
+        successors = sorted(problem.getSuccessors(curr_state), key =lambda x:x[2])
+        for s in successors:
+            if problem.isGoalState(s[0]):
+                goals.append(s[0])
+            if s[0] in states:
+                if paths[s[0]][1] < paths[curr_state][1] + s[2]: continue
+            states.append(s[0])
+            paths[s[0]] = [[],0]
+            paths[s[0]][0] = paths[curr_state][0].copy()
+            paths[s[0]][1] = paths[curr_state][1] + s[2]
+            paths[s[0]][0].append(s[1])
+
+            to_walk[s[0]] = [[], 0]
+            to_walk[s[0]][0] = paths[curr_state][0].copy()
+            to_walk[s[0]][1] = paths[curr_state][1] + s[2]
+            to_walk[s[0]][0].append(s[1])
+
+        to_walk.pop(curr_state)
+        min = sys.maxsize
+        for key, value in to_walk.items():
+            if value[1] < min:
+                min = value[1]
+                curr_state = key
+
+    return None
 
 def nullHeuristic(state, problem=None):
     """
@@ -175,10 +211,49 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visited_states = []
+    curr_state = problem.getStartState()
+    paths = {
+        curr_state: [[],0]
+    }
+    to_walk ={
+        curr_state: [[], 0]
+    }
+    states = [curr_state]
+    index = 0
+    goals = []
+    while len(to_walk) > 0:
+        visited_states.append(curr_state)
+        if curr_state in goals:
+            return paths[curr_state][0]
+        successors = sorted(problem.getSuccessors(curr_state), key =lambda x:x[2])
+        for s in successors:
+            if problem.isGoalState(s[0]):
+                goals.append(s[0])
+            if s[0] in states:
+                if paths[s[0]][1] < paths[curr_state][1] + s[2]: continue
+            states.append(s[0])
+            paths[s[0]] = [[],0]
+            paths[s[0]][0] = paths[curr_state][0].copy()
+            paths[s[0]][1] = paths[curr_state][1] + s[2]
+            paths[s[0]][0].append(s[1])
+
+            to_walk[s[0]] = [[], 0]
+            to_walk[s[0]][0] = paths[curr_state][0].copy()
+            to_walk[s[0]][1] = paths[curr_state][1] + s[2] + heuristic(s[0], problem)
+            to_walk[s[0]][0].append(s[1])
+
+        to_walk.pop(curr_state)
+        min = sys.maxsize
+        for key, value in to_walk.items():
+            if value[1] < min:
+                min = value[1]
+                curr_state = key
+        to_walk[curr_state][1] -= heuristic(curr_state, problem)
+    return None
 
 
 # Abbreviations
